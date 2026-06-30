@@ -1,0 +1,12 @@
+pytesseract
+pdf2image
+Pillow
+langchain
+langchain-community
+langchain-core
+langchain-text-splitters
+chromadb
+ollama
+sentence-transformers
+fastapi
+uvicorn
