@@ -11,7 +11,8 @@ function KnowledgeView() {
   useEffect(() => {
     const fetchKnowledge = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/knowledge');
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        const response = await fetch(`${apiUrl}/api/knowledge`);
         if (!response.ok) throw new Error('Failed to fetch knowledge base');
         const result = await response.json();
         setData(result);
