@@ -13,10 +13,14 @@ VECTORSTORE_DIR = os.path.join(BASE_DIR, "vectorstore")
 def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
-def ask_hero(question: str) -> str:
+class GenerationCancelled(Exception):
+    """Raised when the user cancels an in-flight generation."""
+    pass
+
+def ask_hero(question: str, cancel_event=None) -> str:
     """
     Queries the vectorstore using Ollama (mistral) to answer the user's question
-    based on the loaded documents.
+    based on the loaded documents. Supports cancellation via cancel_event.
     """
     # 1. Initialize Ollama embeddings with the mistral model
     embeddings = OllamaEmbeddings(model="nomic-embed-text")
@@ -45,11 +49,19 @@ def ask_hero(question: str) -> str:
         | StrOutputParser()
     )
     
-    # 6. Run the chain with the input question
-    response = qa_chain.invoke(question)
-    
-    # 7. Return the answer string
-    return response
+    # 6. Stream the chain and check for cancellation between chunks
+    try:
+        collected = []
+        for chunk in qa_chain.stream(question):
+            if cancel_event and cancel_event.is_set():
+                raise GenerationCancelled()
+            collected.append(chunk)
+        return "".join(collected)
+    except GenerationCancelled:
+        partial = "".join(collected)
+        if partial.strip():
+            return partial.strip() + "\n\n⚠️ *Generation was cancelled.*"
+        return "⚠️ Generation was cancelled by the user."
 
 def get_knowledge_base():
     """

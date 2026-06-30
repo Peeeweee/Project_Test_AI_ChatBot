@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, Database } from 'lucide-react';
+import { Send, Bot, Database, Square } from 'lucide-react';
 import KnowledgeView from './KnowledgeView';
 import './App.css';
 
@@ -11,6 +11,7 @@ function App() {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const abortControllerRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -31,6 +32,10 @@ function App() {
     setInputValue('');
     setIsLoading(true);
 
+    // Create an AbortController so we can cancel the fetch
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       const response = await fetch(`${apiUrl}/api/chat`, {
@@ -39,6 +44,7 @@ function App() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ question: userMessage.content }),
+        signal: controller.signal,
       });
 
       if (!response.ok) {
@@ -48,10 +54,31 @@ function App() {
       const data = await response.json();
       setMessages((prev) => [...prev, { role: 'ai', content: data.answer }]);
     } catch (error) {
-      console.error(error);
-      setMessages((prev) => [...prev, { role: 'ai', content: 'Sorry, I encountered an error. Please make sure the backend server is running.' }]);
+      if (error.name === 'AbortError') {
+        // User cancelled — the backend will return a partial/cancelled response
+        // We just show a simple cancellation message on the frontend
+        setMessages((prev) => [...prev, { role: 'ai', content: '⚠️ Generation was cancelled.' }]);
+      } else {
+        console.error(error);
+        setMessages((prev) => [...prev, { role: 'ai', content: 'Sorry, I encountered an error. Please make sure the backend server is running.' }]);
+      }
     } finally {
+      abortControllerRef.current = null;
       setIsLoading(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    // 1. Abort the frontend fetch
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    // 2. Tell the backend to stop Ollama generation
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      await fetch(`${apiUrl}/api/chat/cancel`, { method: 'POST' });
+    } catch {
+      // Best-effort — if this fails the abort signal already stopped the frontend
     }
   };
 
@@ -112,20 +139,25 @@ function App() {
             <div ref={messagesEndRef} />
           </main>
 
-          {/* Input Area */}
           <footer className="input-container">
             <form onSubmit={handleSend} className="input-box">
               <input
                 type="text"
                 className="chat-input"
-                placeholder="Ask a question..."
+                placeholder={isLoading ? 'AI is generating...' : 'Ask a question...'}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 disabled={isLoading}
               />
-              <button type="submit" className="send-button" disabled={!inputValue.trim() || isLoading}>
-                <Send size={20} />
-              </button>
+              {isLoading ? (
+                <button type="button" className="cancel-button" onClick={handleCancel} title="Cancel generation">
+                  <Square size={18} />
+                </button>
+              ) : (
+                <button type="submit" className="send-button" disabled={!inputValue.trim()}>
+                  <Send size={20} />
+                </button>
+              )}
             </form>
           </footer>
         </>
