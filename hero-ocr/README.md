@@ -1,93 +1,96 @@
-# 🤖 Test AI ChatBot
+# Test AI ChatBot
 
-<div align="center">
-  <img alt="React" src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
-  <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi" />
-  <img alt="Ollama" src="https://img.shields.io/badge/Ollama-FFFFFF?style=for-the-badge&logo=Ollama&logoColor=black" />
-  <img alt="Python" src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
-</div>
-
-<br />
-
-**Test AI ChatBot** is a fully local, completely private OCR-powered Retrieval-Augmented Generation (RAG) assistant. It extracts text from your scanned PDFs, chunks and vectorizes the data into ChromaDB, and provides a stunning React-based dark-mode chat interface to interact with your documents using a local LLM (Mistral via Ollama).
-
----
-
-## ✨ Features
-
-- **100% Local & Private**: No API keys required. Your documents never leave your machine.
-- **Smart OCR Pipeline**: Automatically converts scanned PDFs to images and extracts text using Tesseract.
-- **Modern Architecture**: Decoupled React frontend (Vite) and FastAPI backend.
-- **Beautiful UI**: Sleek, pitch-black glassmorphism design with Montserrat typography.
-- **Incremental Ingestion**: Smart processing only vectorizes *new* documents, skipping already ingested files.
-
----
+A full-stack AI chatbot application featuring a React frontend and a FastAPI (Python) backend. It utilizes Ollama for local LLM processing, ChromaDB for vector embeddings, and Tesseract for OCR document ingestion.
 
 ## 🛠️ Prerequisites
 
-Before you begin, ensure you have the following installed on your system:
-- **[Python 3.13+](https://www.python.org/downloads/)** (Ensure this is in your global PATH)
-- **[Node.js](https://nodejs.org/)**: Required to run the React frontend.
-- **[Tesseract OCR](https://github.com/UB-Mannheim/tesseract/wiki)**: Needs to be installed and accessible in your system's PATH.
-- **[Ollama](https://ollama.com/)**: Needs to be installed and running in the background.
-  - *Don't forget to pull the model: `ollama pull mistral`*
+Ensure you have the following software installed on your machine before starting:
 
----
+* **Python 3.13**: Matches the project environment (specifically uses `C:\Python313\python.exe`).
+* **Node.js**: Required for the React frontend (npm comes with it).
+* **Ollama**: Must be installed and running on your machine.
+* **Tesseract OCR**: Must be installed separately (not via pip). 
+  * *Note: You may need to adjust the Tesseract executable path in `ocr.py` since install paths can differ per machine.*
 
-## 🚀 Getting Started
+## 🚀 Installation & Setup
 
-### 1. Install Backend Dependencies
-Open a terminal in the root `hero-ocr` directory:
+### 1. Pull the Required Ollama Models
+Ensure Ollama is running in the background, then pull the required models:
 ```bash
-python -m pip install -r requirements.txt
+ollama pull mistral
+ollama pull nomic-embed-text
+
 ```
 
-### 2. Install Frontend Dependencies
-Navigate to the frontend folder and install Node packages:
+### 2. Clone the Repository
+
+```bash
+git clone <your-repo-url>
+cd hero-ocr
+
+```
+
+### 3. Set Up the Python Backend
+
+Create and activate your virtual environment, then install requirements:
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+
+```
+
+### 4. Set Up the React Frontend
+
+Open a new terminal or navigate to the frontend directory:
+
 ```bash
 cd frontend
 npm install
+
 ```
 
----
+## 📚 Document Ingestion (Adding Data)
 
-## 📚 Adding Knowledge (PDFs)
+Before chatting, you need to OCR, chunk, and embed your documents into ChromaDB:
 
-1. Drop your scanned PDF documents directly into the `documents/` folder.
-2. Open a terminal in the `hero-ocr` directory and extract the text to your local vector database:
+1. Place your PDF files into the `documents/` folder.
+2. Ensure your virtual environment is active, then run the ingestion script:
+
 ```bash
 python ingest.py
+
 ```
-*(You can run this anytime you add new PDFs. It will automatically skip documents that have already been ingested!)*
 
----
+## 💻 Running the Application
 
-## 💻 Running the App
+To use the app, you need to run both the backend and frontend servers simultaneously in separate terminals.
 
-Because the app uses a decoupled architecture, you will need to start the backend API and the frontend UI in **two separate terminals**.
+### 1. Start the Backend Server
 
-### Terminal 1: Start the Backend API (FastAPI)
-Open a terminal in the `hero-ocr` directory and run:
+Open a terminal in the root directory, activate your virtual environment, and run:
+
 ```bash
-python -m uvicorn server:app --reload
-```
-*(If you have Python version issues on Windows, use the full path to your stable python: `C:\Python313\python.exe -m uvicorn server:app --reload`)*
+C:\Python313\python.exe -m uvicorn server:app --reload
 
-### Terminal 2: Start the Frontend UI (React)
-Open a **new, separate terminal**, navigate to the frontend folder, and run:
+```
+
+*(Note: If your system PATH is configured, you can also just use `python -m uvicorn server:app --reload`)*
+
+### 2. Start the Frontend Server
+
+Open a **separate** terminal, navigate to the frontend folder, and run:
+
 ```bash
 cd frontend
 npm run dev
+
 ```
-Click the local web address (usually `http://localhost:5173`) that appears in the terminal to view your chat interface in the browser!
 
----
+### 3. Open the App
 
-## 🐛 Troubleshooting
+Once both servers are running, open your web browser and visit:
+**http://localhost:5173**
 
-| Error | Cause & Fix |
-|-------|-------------|
-| **`TesseractNotFoundError`** | Python cannot find the Tesseract executable. Ensure Tesseract is installed and added to your system's Environment Variables (PATH). |
-| **Failed to connect to Ollama** | The Ollama service is not running. Launch the Ollama application from your start menu, then restart the app. |
-| **`ModelNotFoundError`** | You haven't downloaded the Mistral model yet. Run `ollama pull mistral` in your terminal. |
-| **`ModuleNotFoundError` (fastapi)** | You might be mixing incompatible Python virtual environments. Run the server using your stable Python installation explicitly: `C:\Python313\python.exe -m uvicorn server:app --reload`. |
+*(Note: The chat interface requires the FastAPI backend to be running simultaneously to actually process and answer questions.)*
