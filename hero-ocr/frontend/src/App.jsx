@@ -37,6 +37,7 @@ function App() {
     abortControllerRef.current = controller;
 
     try {
+      console.log("VITE_API_URL resolves to:", import.meta.env.VITE_API_URL);
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       const response = await fetch(`${apiUrl}/api/chat`, {
         method: 'POST',

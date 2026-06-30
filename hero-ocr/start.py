@@ -4,6 +4,19 @@ import os
 import platform
 import time
 import shutil
+import socket
+
+def get_local_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # connect to an external IP to find the local IP used for routing
+        s.connect(('8.8.8.8', 1))
+        ip = s.getsockname()[0]
+    except Exception:
+        ip = '127.0.0.1'
+    finally:
+        s.close()
+    return ip
 
 def main():
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -39,7 +52,18 @@ def main():
         print("Ensure your virtual environment is set up correctly.")
         sys.exit(1)
         
-    # 6. Launch Frontend
+    # 6. Update Frontend .env with Local IP
+    local_ip = get_local_ip()
+    env_path = os.path.join(frontend_dir, ".env")
+    try:
+        with open(env_path, "w") as f:
+            f.write(f"VITE_API_URL=http://{local_ip}:8000\n")
+        print(f"\nDetected network IP: {local_ip}")
+        print(f"Frontend will be accessible at http://{local_ip}:5173")
+    except Exception as e:
+        print(f"\n[WARNING] Could not update {env_path}: {e}")
+
+    # 7. Launch Frontend
     print("Starting frontend server...")
     frontend_cmd = [npm_cmd, "run", "dev", "--", "--host"]
     try:
@@ -50,11 +74,13 @@ def main():
         sys.exit(1)
         
     print("\n=======================================================")
-    print("Both servers are starting. Check the output above for the Local and Network URLs.")
-    print("Press Ctrl+C at any time to stop both servers cleanly.")
+    print("Both servers are starting.")
+    print(f"\nChatbot is accessible locally at:   http://localhost:5173")
+    print(f"Chatbot is accessible on network at: http://{local_ip}:5173")
+    print("\nPress Ctrl+C at any time to stop both servers cleanly.")
     print("=======================================================\n")
     
-    # 7. Keep Alive and Handle Graceful Shutdown
+    # 8. Keep Alive and Handle Graceful Shutdown
     try:
         while True:
             time.sleep(1)
