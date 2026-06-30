@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from rag import ask_hero
+from rag import ask_hero, get_knowledge_base
 
 app = FastAPI(title="Test AI ChatBot API")
 
@@ -30,6 +30,13 @@ def chat_endpoint(request: ChatRequest):
     # completely avoiding the async event loop issues we saw with Chainlit!
     answer = ask_hero(request.question)
     return ChatResponse(answer=answer)
+
+@app.get("/api/knowledge")
+def knowledge_endpoint():
+    """
+    Returns all chunks grouped by their source file.
+    """
+    return get_knowledge_base()
 
 @app.get("/")
 def health_check():

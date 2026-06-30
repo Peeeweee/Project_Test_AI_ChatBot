@@ -51,3 +51,31 @@ def ask_hero(question: str) -> str:
     # 7. Return the answer string
     return response
 
+def get_knowledge_base():
+    """
+    Retrieves all documents stored in the ChromaDB vectorstore,
+    groups them by source filename, and returns the structured data.
+    """
+    embeddings = OllamaEmbeddings(model="nomic-embed-text")
+    vectorstore = Chroma(
+        persist_directory=VECTORSTORE_DIR,
+        embedding_function=embeddings
+    )
+    
+    collection = vectorstore._collection
+    results = collection.get()
+    
+    documents = results.get("documents", [])
+    metadatas = results.get("metadatas", [])
+    
+    grouped_data = {}
+    for doc, meta in zip(documents, metadatas):
+        source_path = meta.get("source", "Unknown")
+        source_filename = os.path.basename(source_path)
+        
+        if source_filename not in grouped_data:
+            grouped_data[source_filename] = []
+            
+        grouped_data[source_filename].append(doc)
+        
+    return grouped_data

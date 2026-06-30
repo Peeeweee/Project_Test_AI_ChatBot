@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User } from 'lucide-react';
+import { Send, Bot, Database } from 'lucide-react';
+import KnowledgeView from './KnowledgeView';
 import './App.css';
 
 function App() {
+  const [currentView, setCurrentView] = useState('chat'); // 'chat' or 'knowledge'
   const [messages, setMessages] = useState([
     { role: 'ai', content: 'Welcome to Test AI ChatBot! Ask me anything.' }
   ]);
@@ -15,8 +17,10 @@ function App() {
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isLoading]);
+    if (currentView === 'chat') {
+      scrollToBottom();
+    }
+  }, [messages, isLoading, currentView]);
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -53,56 +57,80 @@ function App() {
   return (
     <div className="app-container">
       {/* Header */}
-      <header className="header">
-        <div className="header-icon">
-          <Bot size={28} />
+      <header className="header" style={{ justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div className="header-icon">
+            <Bot size={28} />
+          </div>
+          <div className="header-text">
+            <h1>Test AI ChatBot</h1>
+            <p>Your Personal AI Assistant</p>
+          </div>
         </div>
-        <div className="header-text">
-          <h1>Test AI ChatBot</h1>
-          <p>Your Personal AI Assistant</p>
+        
+        {/* Navigation Toggle */}
+        <div className="nav-toggle">
+          <button 
+            className={`nav-btn ${currentView === 'chat' ? 'active' : ''}`}
+            onClick={() => setCurrentView('chat')}
+          >
+            Chat
+          </button>
+          <button 
+            className={`nav-btn ${currentView === 'knowledge' ? 'active' : ''}`}
+            onClick={() => setCurrentView('knowledge')}
+          >
+            <Database size={16} /> Knowledge Base
+          </button>
         </div>
       </header>
 
-      {/* Chat Area */}
-      <main className="chat-container">
-        {messages.map((msg, index) => (
-          <div key={index} className={`message-wrapper ${msg.role}`}>
-            <div className="message-bubble">
-              {msg.content}
-            </div>
-          </div>
-        ))}
-        
-        {isLoading && (
-          <div className="message-wrapper ai">
-            <div className="message-bubble">
-              <div className="typing-indicator">
-                <div className="typing-dot"></div>
-                <div className="typing-dot"></div>
-                <div className="typing-dot"></div>
+      {currentView === 'chat' ? (
+        <>
+          {/* Chat Area */}
+          <main className="chat-container">
+            {messages.map((msg, index) => (
+              <div key={index} className={`message-wrapper ${msg.role}`}>
+                <div className="message-bubble">
+                  {msg.content}
+                </div>
               </div>
-            </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </main>
+            ))}
+            
+            {isLoading && (
+              <div className="message-wrapper ai">
+                <div className="message-bubble">
+                  <div className="typing-indicator">
+                    <div className="typing-dot"></div>
+                    <div className="typing-dot"></div>
+                    <div className="typing-dot"></div>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </main>
 
-      {/* Input Area */}
-      <footer className="input-container">
-        <form onSubmit={handleSend} className="input-box">
-          <input
-            type="text"
-            className="chat-input"
-            placeholder="Ask a question..."
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            disabled={isLoading}
-          />
-          <button type="submit" className="send-button" disabled={!inputValue.trim() || isLoading}>
-            <Send size={20} />
-          </button>
-        </form>
-      </footer>
+          {/* Input Area */}
+          <footer className="input-container">
+            <form onSubmit={handleSend} className="input-box">
+              <input
+                type="text"
+                className="chat-input"
+                placeholder="Ask a question..."
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                disabled={isLoading}
+              />
+              <button type="submit" className="send-button" disabled={!inputValue.trim() || isLoading}>
+                <Send size={20} />
+              </button>
+            </form>
+          </footer>
+        </>
+      ) : (
+        <KnowledgeView />
+      )}
     </div>
   );
 }

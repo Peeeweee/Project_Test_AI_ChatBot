@@ -93,4 +93,8 @@ npm run dev
 Once both servers are running, open your web browser and visit:
 **http://localhost:5173**
 
-*(Note: The chat interface requires the FastAPI backend to be running simultaneously to actually process and answer questions.)*
+You can switch between the two main features using the navigation buttons in the top right of the header:
+* **Chat**: The default interface for querying your documents via Ollama.
+* **Knowledge Base**: A search-enabled explorer where you can browse through the exact chunks and OCR results stored in ChromaDB, grouped by PDF filename.
+
+*(Note: The chat interface and Knowledge Base view both require the FastAPI backend to be running simultaneously to actually process data.)*
