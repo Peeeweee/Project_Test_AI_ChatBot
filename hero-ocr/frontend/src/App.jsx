@@ -5,6 +5,22 @@ import './App.css';
 
 function App() {
   const [currentView, setCurrentView] = useState('chat'); // 'chat' or 'knowledge'
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const isFirstLoad = useRef(true);
+
+  useEffect(() => {
+    isFirstLoad.current = false;
+  }, []);
+
+  const handleTabSwitch = (view) => {
+    if (view === currentView || isTransitioning) return;
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentView(view);
+      setIsTransitioning(false);
+    }, 200);
+  };
+
   const [messages, setMessages] = useState([
     { role: 'ai', content: 'Hello! I am HeRO, your DTI Region 11 Human Resource Officer. I am here to help you with questions about DTI policies, HR guidelines, and internal memorandums. How can I help you today?' }
   ]);
@@ -98,103 +114,105 @@ function App() {
           <div className="header-icon">
             <Bot size={28} />
           </div>
-          <div className="header-text">
+          <div className={`header-text ${isFirstLoad.current ? 'welcome-header' : ''}`}>
             <h1>Project HeRO</h1>
             <p>DTI Region 11 HR Policy Assistant</p>
           </div>
         </div>
-        
+
         {/* Navigation Toggle */}
         <div className="nav-toggle">
-          <button 
+          <button
             className={`nav-btn ${currentView === 'chat' ? 'active' : ''}`}
-            onClick={() => setCurrentView('chat')}
+            onClick={() => handleTabSwitch('chat')}
           >
             Chat
           </button>
-          <button 
+          <button
             className={`nav-btn ${currentView === 'knowledge' ? 'active' : ''}`}
-            onClick={() => setCurrentView('knowledge')}
+            onClick={() => handleTabSwitch('knowledge')}
           >
             <Database size={16} /> Knowledge Base
           </button>
         </div>
       </header>
 
-      {currentView === 'chat' ? (
-        <>
-          {/* Chat Area */}
-          <main className="chat-container">
-            {messages.map((msg, index) => (
-              <div key={index} className={`message-wrapper ${msg.role}`}>
-                <div className="message-bubble">
-                  {msg.content}
-                </div>
-                {msg.role === 'ai' && (
-                  <div className="feedback-container">
-                    <button 
-                      className={`feedback-btn thumbs-up ${feedbackState[index] === 'up' ? 'active-up' : ''}`}
-                      onClick={() => handleFeedback(index, 'up')}
-                      disabled={!!feedbackState[index]}
-                      title="Helpful"
-                    >
-                      <ThumbsUp size={14} />
-                    </button>
-                    <button 
-                      className={`feedback-btn thumbs-down ${feedbackState[index] === 'down' ? 'active-down' : ''}`}
-                      onClick={() => handleFeedback(index, 'down')}
-                      disabled={!!feedbackState[index]}
-                      title="Not helpful"
-                    >
-                      <ThumbsDown size={14} />
-                    </button>
-                    {feedbackState[index] && (
-                      <span className="feedback-text">Thank you for your feedback!</span>
-                    )}
+      <div className={`view-container ${isTransitioning ? 'fade-out' : 'fade-in'}`}>
+        {currentView === 'chat' ? (
+          <>
+            {/* Chat Area */}
+            <main className="chat-container">
+              {messages.map((msg, index) => (
+                <div key={index} className={`message-wrapper ${msg.role} ${index === 0 && isFirstLoad.current ? 'welcome-message' : ''}`}>
+                  <div className="message-bubble">
+                    {msg.content}
                   </div>
-                )}
-              </div>
-            ))}
-            
-            {isLoading && (
-              <div className="message-wrapper ai">
-                <div className="message-bubble">
-                  <div className="typing-indicator">
-                    <div className="typing-dot"></div>
-                    <div className="typing-dot"></div>
-                    <div className="typing-dot"></div>
-                  </div>
+                  {msg.role === 'ai' && (
+                    <div className="feedback-container">
+                      <button
+                        className={`feedback-btn thumbs-up ${feedbackState[index] === 'up' ? 'active-up' : ''}`}
+                        onClick={() => handleFeedback(index, 'up')}
+                        disabled={!!feedbackState[index]}
+                        title="Helpful"
+                      >
+                        <ThumbsUp size={14} />
+                      </button>
+                      <button
+                        className={`feedback-btn thumbs-down ${feedbackState[index] === 'down' ? 'active-down' : ''}`}
+                        onClick={() => handleFeedback(index, 'down')}
+                        disabled={!!feedbackState[index]}
+                        title="Not helpful"
+                      >
+                        <ThumbsDown size={14} />
+                      </button>
+                      {feedbackState[index] && (
+                        <span className="feedback-text">Thank you for your feedback!</span>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </main>
+              ))}
 
-          <footer className="input-container">
-            <form onSubmit={handleSend} className="input-box">
-              <input
-                type="text"
-                className="chat-input"
-                placeholder={isLoading ? 'AI is generating...' : 'Ask a question...'}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                disabled={isLoading}
-              />
-              {isLoading ? (
-                <button type="button" className="cancel-button" onClick={handleCancel} title="Cancel generation">
-                  <Square size={18} />
-                </button>
-              ) : (
-                <button type="submit" className="send-button" disabled={!inputValue.trim()}>
-                  <Send size={20} />
-                </button>
+              {isLoading && (
+                <div className="message-wrapper ai">
+                  <div className="message-bubble">
+                    <div className="typing-indicator">
+                      <div className="typing-dot"></div>
+                      <div className="typing-dot"></div>
+                      <div className="typing-dot"></div>
+                    </div>
+                  </div>
+                </div>
               )}
-            </form>
-          </footer>
-        </>
-      ) : (
-        <KnowledgeView />
-      )}
+              <div ref={messagesEndRef} />
+            </main>
+
+            <footer className={`input-container ${isFirstLoad.current ? 'welcome-input' : ''}`}>
+              <form onSubmit={handleSend} className="input-box">
+                <input
+                  type="text"
+                  className="chat-input"
+                  placeholder={isLoading ? 'AI is generating...' : 'Ask a question...'}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  disabled={isLoading}
+                />
+                {isLoading ? (
+                  <button type="button" className="cancel-button" onClick={handleCancel} title="Cancel generation">
+                    <Square size={18} />
+                  </button>
+                ) : (
+                  <button type="submit" className="send-button" disabled={!inputValue.trim()}>
+                    <Send size={20} />
+                  </button>
+                )}
+              </form>
+            </footer>
+          </>
+        ) : (
+          <KnowledgeView />
+        )}
+      </div>
     </div>
   );
 }
