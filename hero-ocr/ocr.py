@@ -1,5 +1,7 @@
 import os
+# pyrefly: ignore [missing-import]
 import pytesseract
+# pyrefly: ignore [missing-import]
 from pdf2image import convert_from_path
 
 # Hardcoded path to the Tesseract executable

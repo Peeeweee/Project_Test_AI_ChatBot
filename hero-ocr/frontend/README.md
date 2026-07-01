@@ -1,6 +1,6 @@
 # Frontend UI
 
-This folder contains the React frontend for the Test AI ChatBot project. 
+This folder contains the React frontend for the Project HeRO project. 
 
 ## How to Run the Frontend
 

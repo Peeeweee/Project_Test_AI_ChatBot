@@ -1,17 +1,24 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, Database, Square } from 'lucide-react';
+import { Send, Bot, Database, Square, ThumbsUp, ThumbsDown } from 'lucide-react';
 import KnowledgeView from './KnowledgeView';
 import './App.css';
 
 function App() {
   const [currentView, setCurrentView] = useState('chat'); // 'chat' or 'knowledge'
   const [messages, setMessages] = useState([
-    { role: 'ai', content: 'Welcome to Test AI ChatBot! Ask me anything.' }
+    { role: 'ai', content: 'Hello! I am HeRO, your DTI Region 11 Human Resource Officer. I am here to help you with questions about DTI policies, HR guidelines, and internal memorandums. How can I help you today?' }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const abortControllerRef = useRef(null);
+  const [feedbackState, setFeedbackState] = useState({});
+
+  const handleFeedback = (index, type) => {
+    if (!feedbackState[index]) {
+      setFeedbackState(prev => ({ ...prev, [index]: type }));
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -92,8 +99,8 @@ function App() {
             <Bot size={28} />
           </div>
           <div className="header-text">
-            <h1>Test AI ChatBot</h1>
-            <p>Your Personal AI Assistant</p>
+            <h1>Project HeRO</h1>
+            <p>DTI Region 11 HR Policy Assistant</p>
           </div>
         </div>
         
@@ -123,6 +130,29 @@ function App() {
                 <div className="message-bubble">
                   {msg.content}
                 </div>
+                {msg.role === 'ai' && (
+                  <div className="feedback-container">
+                    <button 
+                      className={`feedback-btn thumbs-up ${feedbackState[index] === 'up' ? 'active-up' : ''}`}
+                      onClick={() => handleFeedback(index, 'up')}
+                      disabled={!!feedbackState[index]}
+                      title="Helpful"
+                    >
+                      <ThumbsUp size={14} />
+                    </button>
+                    <button 
+                      className={`feedback-btn thumbs-down ${feedbackState[index] === 'down' ? 'active-down' : ''}`}
+                      onClick={() => handleFeedback(index, 'down')}
+                      disabled={!!feedbackState[index]}
+                      title="Not helpful"
+                    >
+                      <ThumbsDown size={14} />
+                    </button>
+                    {feedbackState[index] && (
+                      <span className="feedback-text">Thank you for your feedback!</span>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
             
