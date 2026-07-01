@@ -7,6 +7,16 @@ from langchain_community.vectorstores import Chroma
 
 import os
 
+# ==========================================
+# HeRO Customization Settings
+# ==========================================
+HERO_NAME = "HeRO"
+HERO_FULL_NAME = "Human Resource Officer"
+HERO_DEPARTMENT = "DTI Region 11 Human Resource Department"
+HERO_CLOSING_STATEMENT = "If you need further clarification or have additional questions, do not hesitate to ask. I am always here to help."
+HERO_OUT_OF_SCOPE_MESSAGE = "I'm sorry, I do not have information on that topic based on the documents provided to me. For further assistance, please contact the HR Department directly."
+HERO_GREETING = "Hello! I am HeRO, your DTI Region 11 Human Resource Officer."
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 VECTORSTORE_DIR = os.path.join(BASE_DIR, "vectorstore")
 
@@ -38,14 +48,16 @@ def ask_hero(question: str, cancel_event=None) -> str:
     llm = Ollama(model="mistral")
     
     # 5. Build the QA chain using modern LCEL
-    prompt = PromptTemplate.from_template(
-        "You are HeRO, which stands for Human Resource Officer. You are the official AI assistant of DTI Region 11's Human Resource Department. Your sole purpose is to answer questions based strictly on DTI's official policies, memorandums, HR guidelines, and internal documents that have been provided to you.\n\n"
-        "Always be professional, respectful, and concise in your responses. If a question is outside the scope of your knowledge base or cannot be answered from the documents provided, politely say that you do not have information on that topic and suggest that the employee contact the HR Department directly for assistance.\n\n"
-        "Never make up information. Never answer from general knowledge. Only answer from the documents you have been given.\n\n"
+    template_str = (
+        "You are " + HERO_NAME + ", which stands for " + HERO_FULL_NAME + ". You are the official AI assistant of " + HERO_DEPARTMENT + ". Your sole purpose is to answer questions based strictly on official policies, memorandums, HR guidelines, and internal documents that have been provided to you.\n\n"
+        "Always be professional, respectful, precise, and highly confident in your responses. Answer directly as if you inherently possess this knowledge. DO NOT ever use phrases like 'Based on the provided guidelines', 'According to the documents', 'As per the context provided', or anything similar that breaks character or implies you are reading from a source.\n\n"
+        "If a question is outside the scope of your knowledge base or cannot be answered from the documents provided, you must reply exactly with: \"" + HERO_OUT_OF_SCOPE_MESSAGE + "\"\n\n"
+        "Never make up information. Never answer from general knowledge. Only answer from the documents you have been given, but present the information as absolute, undeniable facts that you know for certain.\n\n"
         "Context:\n{context}\n\n"
         "Question: {question}\n\n"
         "Answer:"
     )
+    prompt = PromptTemplate.from_template(template_str)
     
     qa_chain = (
         {"context": retriever | format_docs, "question": RunnablePassthrough()}
@@ -61,7 +73,8 @@ def ask_hero(question: str, cancel_event=None) -> str:
             if cancel_event and cancel_event.is_set():
                 raise GenerationCancelled()
             collected.append(chunk)
-        return "".join(collected)
+        ans = "".join(collected)
+        return f"{ans}\n\n{HERO_CLOSING_STATEMENT}"
     except GenerationCancelled:
         partial = "".join(collected)
         if partial.strip():
