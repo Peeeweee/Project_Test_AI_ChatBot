@@ -65,7 +65,19 @@ python ingest.py
 
 ## 💻 Running the Application
 
-To use the app, you need to run both the backend and frontend servers simultaneously in separate terminals.
+### The Recommended Way (All-in-One Launcher)
+
+You can launch both the React frontend and FastAPI backend simultaneously using our convenient start script. Open a terminal in the `hero-ocr` folder and run:
+
+```bash
+python start.py
+```
+
+This will run both processes in the same terminal and gracefully shut them both down if you press `Ctrl+C`.
+
+### The Manual Way (Two Terminals)
+
+If you prefer to run them separately (e.g., for troubleshooting), you can start them in two different terminals:
 
 ### 1. Start the Backend Server
 
@@ -98,3 +110,13 @@ You can switch between the two main features using the navigation buttons in the
 * **Knowledge Base**: A search-enabled explorer where you can browse through the exact chunks and OCR results stored in ChromaDB, grouped by PDF filename.
 
 *(Note: The chat interface and Knowledge Base view both require the FastAPI backend to be running simultaneously to actually process data.)*
+
+## 🌐 Local Network Access (Other Devices)
+
+This project is configured to be accessible by other devices (like a phone or tablet) connected to the same WiFi network as your laptop. 
+
+1. Ensure the app is running on your laptop using `python start.py`
+2. `start.py` will automatically detect your local network IP and update the frontend's `.env` file for you. It will print the detected IP to the console (e.g., `Frontend will be accessible at http://192.168.X.X:5173`).
+3. On any other device on the same local network, open a web browser and navigate to the printed URL.
+
+*(Note: Because `start.py` auto-detects the IP, manual `.env` editing is no longer needed for local network testing.)*
