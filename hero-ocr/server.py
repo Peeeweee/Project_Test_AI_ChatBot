@@ -12,7 +12,7 @@ app = FastAPI(title="Test AI ChatBot API")
 # Enable CORS for the React frontend (usually running on localhost:5173 for Vite)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
